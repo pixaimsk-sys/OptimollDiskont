@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Оптимолл Дисконт</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--ink:#15171b;--muted:#737983;--line:#e4e6ea;--dark:#111827;--accent:#d84b4b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink)}
+.app{max-width:520px;margin:auto;min-height:100vh;padding-bottom:82px}.top{padding:18px 16px 10px;background:var(--bg);position:sticky;top:0;z-index:4}
+.logo{font-size:20px;font-weight:900}.sub{font-size:12px;color:var(--muted);margin-top:3px}.search{margin-top:13px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;color:var(--muted)}
+main{padding:8px 15px}.hero{background:var(--dark);color:white;border-radius:22px;padding:22px;margin:8px 0 18px}.hero h1{font-size:27px;line-height:1.05;margin:0 0 9px}.hero p{color:#d5d9df;font-size:14px;margin:0 0 16px}.btn{width:100%;padding:13px 14px;border:0;border-radius:13px;font-weight:800;font-size:14px}.white{background:#fff;color:var(--dark)}.dark{background:var(--dark);color:#fff}.outline{background:#fff;border:1px solid var(--line);color:var(--ink)}
+.head{display:flex;justify-content:space-between;align-items:center;margin:18px 0 10px}.head h2{font-size:18px;margin:0}.muted{font-size:12px;color:var(--muted)}
+.chips{display:flex;gap:8px;overflow:auto;padding-bottom:3px}.chip{white-space:nowrap;background:#fff;border:1px solid var(--line);border-radius:999px;padding:9px 12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.card{background:#fff;border:1px solid var(--line);border-radius:17px;overflow:hidden}.pic{height:145px;background:linear-gradient(135deg,#e8ebef,#cbd1d9);display:flex;align-items:center;justify-content:center;font-size:55px}.body{padding:11px}.name{font-weight:800;font-size:14px}.price{font-weight:900;margin-top:7px}.old{text-decoration:line-through;color:#999;font-size:11px;margin-left:5px}.sale{display:inline-block;margin-top:6px;background:#fce9e9;color:var(--accent);font-size:10px;font-weight:800;padding:4px 6px;border-radius:7px}
+.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:520px;width:100%;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:9px 6px calc(9px + env(safe-area-inset-bottom));z-index:10}.nav{border:0;background:none;color:#777;font-size:10px;display:flex;flex-direction:column;gap:4px;align-items:center}.nav b{font-size:19px}.nav.active{color:#111827;font-weight:900}
+.modal{display:none;position:fixed;inset:0;background:#0006;z-index:20;align-items:flex-end}.sheet{width:100%;max-width:520px;max-height:93vh;overflow:auto;background:#fff;border-radius:24px 24px 0 0;padding:18px;margin:auto}.close{float:right;border:0;border-radius:50%;width:34px;height:34px}.field{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;margin:5px 0 10px;font:inherit}.notice{background:#f3f4f6;padding:12px;border-radius:13px;color:#555;font-size:13px;margin:12px 0}.opt{display:flex;gap:8px;flex-wrap:wrap}.o{border:1px solid var(--line);background:#fff;border-radius:11px;padding:10px 11px}.o.sel{background:var(--dark);color:#fff;border-color:var(--dark)}.row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.toast{display:none;position:fixed;bottom:85px;left:50%;transform:translateX(-50%);background:var(--dark);color:#fff;padding:11px 14px;border-radius:12px;z-index:30;font-size:13px}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top"><div class="logo">ОПТИМОЛЛ ДИСКОНТ</div><div class="sub">Очки и линзы • доставка по России</div><div class="search" onclick="catalog()">⌕ &nbsp; Найти оправу или линзы</div></header>
+<main id="main"></main>
+<nav class="bottom">
+<button class="nav active" onclick="home()"><b>⌂</b>Главная</button>
+<button class="nav" onclick="catalog()"><b>👓</b>Каталог</button>
+<button class="nav" onclick="cart()"><b>🛒</b>Заказ <span id="count"></span></button>
+<button class="nav" onclick="help()"><b>💬</b>Помощь</button>
+</nav>
+</div>
+<div class="modal" id="modal"><div class="sheet"><button class="close" onclick="closeM()">×</button><div id="modalBody"></div></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const frames=[
+{id:1,n:"OptiLine Classic 201",brand:"OptiLine",p:3990,old:5990,size:"54□18–140",shape:"Прямоугольная"},
+{id:2,n:"Urban Metal 08",brand:"Urban",p:5490,old:7490,size:"52□19–140",shape:"Круглая"},
+{id:3,n:"Junior Flex 12",brand:"OptiKids",p:2990,old:3990,size:"47□17–130",shape:"Детская"},
+{id:4,n:"Titan Air 501",brand:"Titan",p:8990,old:11990,size:"55□18–145",shape:"Авиатор"}];
+const lenses=[
+{id:1,n:"Однофокальные 1.60",p:3990,d:"Повседневная коррекция"},
+{id:2,n:"Тонкие 1.67",p:6490,d:"Для более высоких диоптрий"},
+{id:3,n:"Прогрессивные",p:11990,d:"Даль + средняя зона + близь"},
+{id:4,n:"Перифокальные",p:14990,d:"Индивидуальное решение"}];
+let cartData=JSON.parse(localStorage.getItem("od_mvp_cart")||"[]"), builder={f:1,l:1};
+const money=x=>x.toLocaleString("ru-RU")+" ₽";
+function save(){localStorage.setItem("od_mvp_cart",JSON.stringify(cartData));document.getElementById("count").textContent=cartData.length?`(${cartData.length})`:""}
+function toast(t){let e=document.getElementById("toast");e.textContent=t;e.style.display="block";setTimeout(()=>e.style.display="none",1800)}
+function closeM(){document.getElementById("modal").style.display="none"}
+function modal(s){document.getElementById("modalBody").innerHTML=s;document.getElementById("modal").style.display="flex"}
+function active(i){document.querySelectorAll(".nav").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".nav")[i].classList.add("active")}
+function home(){active(0);document.getElementById("main").innerHTML=`
+<section class="hero"><h1>Очки по вашему рецепту</h1><p>Оправы, линзы и изготовление любой сложности. Детские, прогрессивные, перифокальные и другие решения.</p><button class="btn white" onclick="builderOpen()">Подобрать очки</button></section>
+<div class="head"><h2>Категории</h2></div><div class="chips">
+<button class="chip" onclick="catalog('frames')">👓 Оправы</button><button class="chip" onclick="catalog('lenses')">🔬 Линзы</button><button class="chip" onclick="catalog('kids')">👶 Детские</button><button class="chip" onclick="catalog('progressive')">◉ Прогрессивные</button></div>
+<div class="head"><h2>Оправы со скидкой</h2><span class="muted">Москва → Россия</span></div><div class="grid">${frames.map(card).join("")}</div>
+<div class="head"><h2>Изготовление любой сложности</h2></div><div class="notice"><b>Есть сложный рецепт?</b><br>Соберите предварительный заказ и отправьте его менеджеру. Специалист проверит рецепт и согласует финальную стоимость.</div>
+<button class="btn dark" onclick="consult()">💬 Получить консультацию</button>`}
+function card(p){return `<article class="card" onclick="frame(${p.id})"><div class="pic">👓</div><div class="body"><div class="name">${p.n}</div><div class="muted">${p.brand} · ${p.size}</div><div class="price">${money(p.p)} <span class="old">${money(p.old)}</span></div><span class="sale">СКИДКА</span></div></article>`}
+function catalog(type="frames"){active(1);let ls=type==="lenses";document.getElementById("main").innerHTML=`<div class="head"><h2>${ls?"Линзы":"Оправы"}</h2></div><div class="chips"><button class="chip" onclick="catalog('frames')">Оправы</button><button class="chip" onclick="catalog('lenses')">Линзы</button><button class="chip" onclick="catalog('kids')">Детские</button><button class="chip" onclick="catalog('progressive')">Прогрессивные</button></div><div class="grid" style="margin-top:12px">${ls?lenses.map(l=>`<article class="card" onclick="lens(${l.id})"><div class="pic">🔬</div><div class="body"><div class="name">${l.n}</div><div class="muted">${l.d}</div><div class="price">${money(l.p)}</div></div></article>`).join(""):frames.filter(f=>type!=="kids"||f.shape==="Детская").map(card).join("")}</div>`}
+function frame(id){let p=frames.find(x=>x.id===id);modal(`<h2>${p.n}</h2><div class="pic" style="border-radius:18px">👓</div><p class="muted">${p.brand} · ${p.shape} · ${p.size}</p><h2>${money(p.p)}</h2><div class="notice">Можно купить только оправу или собрать готовые очки с линзами.</div><button class="btn dark" onclick="add({t:'frame',id:${id}})">Добавить оправу</button><button class="btn outline" style="margin-top:8px" onclick="builderOpen(${id})">Собрать очки</button>`)}
+function lens(id){let l=lenses.find(x=>x.id===id);modal(`<h2>${l.n}</h2><p>${l.d}</p><h2>${money(l.p)}</h2><div class="notice">Для прогрессивных и перифокальных линз параметры проверяются специалистом.</div><button class="btn dark" onclick="add({t:'lens',id:${id}})">Добавить линзу</button>`)}
+function add(x){cartData.push(x);save();closeM();toast("Добавлено в заказ")}
+function builderOpen(fid=builder.f){builder.f=fid;builder.l=builder.l||1;let p=frames.find(x=>x.id===builder.f),l=lenses.find(x=>x.id===builder.l);modal(`<h2>Собрать очки</h2><div class="muted">Оправа</div><div class="opt">${frames.map(f=>`<button class="o ${f.id===builder.f?'sel':''}" onclick="builder.f=${f.id};builderOpen()">${f.n}<br>${money(f.p)}</button>`).join("")}</div><div class="muted" style="margin-top:14px">Линзы</div><div class="opt">${lenses.map(x=>`<button class="o ${x.id===builder.l?'sel':''}" onclick="builder.l=${x.id};builderOpen()">${x.n}<br>${money(x.p)}</button>`).join("")}</div><div class="muted" style="margin-top:14px">Рецепт</div><button class="btn outline" onclick="prescription()">📷 Загрузить рецепт / ввести параметры</button><div class="notice">Для сложных рецептов заказ сначала проверит специалист. Финальная цена подтверждается перед изготовлением.</div><h3>Предварительно: ${money(p.p+l.p)}</h3><button class="btn dark" onclick="add({t:'set',f:${p.id},l:${l.id}})">Добавить комплект</button>`)}
+function prescription(){modal(`<h2>Рецепт</h2><div class="notice">В этой версии файл не отправляется на сервер. В реальном Telegram-боте фото/PDF рецепта будет отправляться непосредственно менеджеру.</div><input class="field" type="file" accept="image/*,.pdf"><input class="field" placeholder="PD, например 62 мм"><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px"><input class="field" placeholder="OD SPH"><input class="field" placeholder="OS SPH"><input class="field" placeholder="OD CYL"><input class="field" placeholder="OS CYL"><input class="field" placeholder="OD AXIS"><input class="field" placeholder="OS AXIS"></div><button class="btn dark" onclick="builderOpen()">Сохранить</button>`)}
+function cart(){active(2);let total=0;let rows=cartData.map((x,i)=>{let n="",p=0;if(x.t==="frame"){let a=frames.find(z=>z.id===x.id);n=a.n;p=a.p}else if(x.t==="lens"){let a=lenses.find(z=>z.id===x.id);n=a.n;p=a.p}else{let f=frames.find(z=>z.id===x.f),l=lenses.find(z=>z.id===x.l);n=f.n+" + "+l.n;p=f.p+l.p}total+=p;return `<div class="row"><div><b>${n}</b><div class="muted">${money(p)}</div></div><button class="o" onclick="removeItem(${i})">Удалить</button></div>`}).join("");document.getElementById("main").innerHTML=`<div class="head"><h2>Ваш заказ</h2></div>${rows||'<div class="notice">Пока ничего нет. Выберите оправу или соберите очки.</div>'}${total?`<div class="row"><b>Предварительная сумма</b><b>${money(total)}</b></div><button class="btn dark" style="margin-top:12px" onclick="orderForm(${total})">Отправить заказ менеджеру</button><div class="muted" style="margin-top:9px;text-align:center">Менеджер подтвердит рецепт, стоимость и способ оплаты.</div>`:""}`}
+function removeItem(i){cartData.splice(i,1);save();cart()}
+function orderForm(total){modal(`<h2>Отправить заказ</h2><input class="field" placeholder="Ваше имя"><input class="field" placeholder="Телефон"><input class="field" placeholder="Город"><input class="field" placeholder="Адрес доставки / пункт выдачи"><div class="opt"><button class="o sel">📦 Пункт выдачи</button><button class="o">🚚 Курьер</button></div><textarea class="field" style="height:90px;margin-top:10px" placeholder="Комментарий к заказу"></textarea><div class="notice"><b>Предварительно: ${money(total)}</b><br>После отправки менеджер свяжется с вами в Telegram для проверки рецепта и согласования заказа.</div><button class="btn dark" onclick="sendDemoOrder()">Отправить менеджеру</button>`)}
+function sendDemoOrder(){cartData=[];save();closeM();modal(`<h2>Заказ отправлен</h2><div class="notice">В рабочей версии это сообщение будет передано в Telegram менеджеру вместе с составом заказа и фотографией рецепта.</div><button class="btn dark" onclick="closeM();home()">Вернуться в магазин</button>`)}
+function help(){active(3);document.getElementById("main").innerHTML=`<div class="head"><h2>Помощь</h2></div><div class="notice"><b>Нужна консультация?</b><br>Напишите, какие очки вам нужны, или отправьте рецепт. Менеджер поможет подобрать оправу и линзы.</div><button class="btn dark" onclick="consult()">💬 Написать менеджеру</button><div class="head"><h2>Доставка</h2></div><div class="notice">Доставка по России. Способ и стоимость доставки согласуются при оформлении заказа.</div>`}
+function consult(){modal(`<h2>Консультация</h2><textarea class="field" style="height:110px" placeholder="Например: нужны прогрессивные очки, есть рецепт..."></textarea><input class="field" placeholder="Телефон"><button class="btn dark" onclick="sendDemoOrder()">Отправить запрос менеджеру</button>`)}
+save();home();
+</script>
+</body>
+</html>
