@@ -1,0 +1,39 @@
+name: Add recipe upload
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch shop
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("index.html")
+          s=p.read_text(encoding="utf-8")
+          old='<input id="orderAddress" class="field" placeholder="Адрес доставки / пункт выдачи"><div class="opt">'
+          new='<input id="orderAddress" class="field" placeholder="Адрес доставки / пункт выдачи"><div class="notice"><b>📷 Рецепт</b><br>Прикрепите фото или PDF рецепта — менеджер получит его вместе с заказом.</div><input id="orderRecipe" class="field" type="file" accept="image/*,.pdf"><div class="opt">'
+          s=s.replace(old,new,1)
+          old='const tg=getTelegramUser();const telegramUser=tg.username?("@"+tg.username):([tg.first_name,tg.last_name].filter(Boolean).join(" ")||(tg.id?"Telegram ID: "+tg.id:""));const data=new URLSearchParams();'
+          new='const tg=getTelegramUser();const telegramUser=tg.username?("@"+tg.username):([tg.first_name,tg.last_name].filter(Boolean).join(" ")||(tg.id?"Telegram ID: "+tg.id:""));const data=new FormData();'
+          s=s.replace(old,new,1)
+          old="data.set('items',window.currentOrderItems||cartSummary()||'');data.set('telegram_user',telegramUser);try{await fetch(ORDER_WEBHOOK"
+          new="data.set('items',window.currentOrderItems||cartSummary()||'');data.set('telegram_user',telegramUser);const recipe=document.getElementById('orderRecipe')?.files?.[0];if(recipe)data.append('recipe',recipe,recipe.name);try{await fetch(ORDER_WEBHOOK"
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding="utf-8")
+          PY
+      - name: Commit patch
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Добавить загрузку рецепта к заказу"
+          git push
