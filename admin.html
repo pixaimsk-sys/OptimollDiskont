@@ -29,7 +29,8 @@
 const SUPABASE_URL="https://xyleolabcmkepwdycrxe.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY="sb_publishable_kIsCb4TRetETGieV_Jlh8g_XTbjMac8";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-const $=id=>document.getElementById(id);\nconst PHOTO_BUCKET="product-photos";
+const $=id=>document.getElementById(id);
+const PHOTO_BUCKET="product-photos";
 function status(id,msg){$(id).textContent=msg}
 function showManager(yes){$("login").classList.toggle("hidden",yes);$("manager").classList.toggle("hidden",!yes)}
 async function checkSession(){const {data}=await db.auth.getSession();if(data.session){showManager(true);await loadProducts()}}
