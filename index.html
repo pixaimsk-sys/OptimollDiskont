@@ -59,11 +59,11 @@ async function loadSupabaseProducts(){
   const lensRows=rows.filter(isLens);
   if(frameRows.length) frames=frameRows.map((x,i)=>{
    const prior=oldFrames.find(p=>p.id===Number(x.id))||{};
-   return {id:Number(x.id),n:x.name||prior.n||"Оправа",brand:x.brand||prior.brand||"",p:Number(x.price)||0,old:Number(x.old_price)||0,size:prior.size||"",shape:prior.shape||(String(x.category||"").includes("Детские")?"Детская":"Оправа"),photo:x.photo||""};
+   return {id:Number(x.id),n:x.name||prior.n||"Оправа",brand:x.brand||prior.brand||"",p:Number(x.price)||0,old:Number(x.old_price)||0,size:prior.size||"",shape:prior.shape||(String(x.category||"").includes("Детские")?"Детская":"Оправа"),category:x.category||"Оправы",photo:x.photo||""};
   });
   if(lensRows.length) lenses=lensRows.map((x,i)=>{
    const prior=oldLenses.find(p=>p.id===Number(x.id))||{};
-   return {id:Number(x.id),n:x.name||prior.n||"Линзы",p:Number(x.price)||0,d:prior.d||(x.category||"Линзы"),photo:x.photo||""};
+   return {id:Number(x.id),n:x.name||prior.n||"Линзы",p:Number(x.price)||0,d:prior.d||(x.category||"Линзы"),category:x.category||"Линзы",photo:x.photo||""};
   });
   if(document.getElementById("main")){if(document.querySelector(".bottom .active")?.textContent.includes("Каталог")) catalog();else home();}
  }catch(e){console.warn("Не удалось загрузить каталог из Supabase; используются встроенные товары.",e);}
