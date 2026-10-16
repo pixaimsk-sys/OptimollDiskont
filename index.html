@@ -54,8 +54,9 @@ async function loadSupabaseProducts(){
   const rows=await response.json();
   if(!Array.isArray(rows)||!rows.length) return;
   const oldFrames=frames,oldLenses=lenses;
-  const frameRows=rows.filter(x=>!/(линз|прогрессив)/i.test(String(x.category||"")));
-  const lensRows=rows.filter(x=>/(линз|прогрессив)/i.test(String(x.category||"")));
+  const isLens=x=>/линз|прогрессив|бифокал|фотохром|минеральное стекло|имиджевые|солнцезащитные/i.test(String(x.category||""));
+  const frameRows=rows.filter(x=>!isLens(x));
+  const lensRows=rows.filter(isLens);
   if(frameRows.length) frames=frameRows.map((x,i)=>{
    const prior=oldFrames.find(p=>p.id===Number(x.id))||{};
    return {id:Number(x.id),n:x.name||prior.n||"Оправа",brand:x.brand||prior.brand||"",p:Number(x.price)||0,old:Number(x.old_price)||0,size:prior.size||"",shape:prior.shape||(String(x.category||"").includes("Детские")?"Детская":"Оправа"),photo:x.photo||""};
