@@ -33,16 +33,40 @@ main{padding:8px 15px}.hero{background:var(--dark);color:white;border-radius:22p
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 const ORDER_WEBHOOK="https://hook.us2.make.com/ql0c66ctrmiszu1jrctwjb6ethiol9qa";
-const frames=[
+let frames=[
 {id:1,n:"OptiLine Classic 201",brand:"OptiLine",p:3990,old:5990,size:"54□18–140",shape:"Прямоугольная"},
 {id:2,n:"Urban Metal 08",brand:"Urban",p:5490,old:7490,size:"52□19–140",shape:"Круглая"},
 {id:3,n:"Junior Flex 12",brand:"OptiKids",p:2990,old:3990,size:"47□17–130",shape:"Детская"},
 {id:4,n:"Titan Air 501",brand:"Titan",p:8990,old:11990,size:"55□18–145",shape:"Авиатор"}];
-const lenses=[
+let lenses=[
 {id:1,n:"Однофокальные 1.60",p:3990,d:"Повседневная коррекция"},
 {id:2,n:"Тонкие 1.67",p:6490,d:"Для более высоких диоптрий"},
 {id:3,n:"Прогрессивные",p:11990,d:"Даль + средняя зона + близь"},
 {id:4,n:"Перифокальные",p:14990,d:"Индивидуальное решение"}];
+const SUPABASE_URL="https://xyleolabcmkepwdycrxe.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_kIsCb4TRetETGieV_Jlh8g_XTbjMac8";
+async function loadSupabaseProducts(){
+ try{
+  const response=await fetch(SUPABASE_URL+"/rest/v1/products?select=id,name,brand,category,price,old_price,photo&order=id.asc",{
+   headers:{"apikey":SUPABASE_PUBLISHABLE_KEY,"Authorization":"Bearer "+SUPABASE_PUBLISHABLE_KEY}
+  });
+  if(!response.ok) throw new Error("Supabase request failed");
+  const rows=await response.json();
+  if(!Array.isArray(rows)||!rows.length) return;
+  const oldFrames=frames,oldLenses=lenses;
+  const frameRows=rows.filter(x=>!/(линз|прогрессив)/i.test(String(x.category||"")));
+  const lensRows=rows.filter(x=>/(линз|прогрессив)/i.test(String(x.category||"")));
+  if(frameRows.length) frames=frameRows.map((x,i)=>{
+   const prior=oldFrames.find(p=>p.id===Number(x.id))||{};
+   return {id:Number(x.id),n:x.name||prior.n||"Оправа",brand:x.brand||prior.brand||"",p:Number(x.price)||0,old:Number(x.old_price)||0,size:prior.size||"",shape:prior.shape||(String(x.category||"").includes("Детские")?"Детская":"Оправа"),photo:x.photo||""};
+  });
+  if(lensRows.length) lenses=lensRows.map((x,i)=>{
+   const prior=oldLenses.find(p=>p.id===Number(x.id))||{};
+   return {id:Number(x.id),n:x.name||prior.n||"Линзы",p:Number(x.price)||0,d:prior.d||(x.category||"Линзы"),photo:x.photo||""};
+  });
+  if(document.getElementById("main")){if(document.querySelector(".bottom .active")?.textContent.includes("Каталог")) catalog();else home();}
+ }catch(e){console.warn("Не удалось загрузить каталог из Supabase; используются встроенные товары.",e);}
+}
 let cartData=JSON.parse(localStorage.getItem("od_mvp_cart")||"[]"), builder={f:1,l:1};
 const money=x=>x.toLocaleString("ru-RU")+" ₽";function getTelegramUser(){try{const live=window.Telegram?.WebApp?.initDataUnsafe?.user;if(live)return live;for(const raw of [location.search,location.hash.replace(/^#/,'')]){const p=new URLSearchParams(raw);const data=p.get('tgWebAppData');if(data){const u=new URLSearchParams(data).get('user');if(u)return JSON.parse(u)}}}catch(e){}return {}}
 function save(){localStorage.setItem("od_mvp_cart",JSON.stringify(cartData));document.getElementById("count").textContent=cartData.length?`(${cartData.length})`:""}
@@ -74,7 +98,7 @@ function sendDemoOrder(){sendOrder(0)}
 function help(){active(3);document.getElementById("main").innerHTML=`<div class="head"><h2>Помощь</h2></div><div class="notice"><b>Нужна консультация?</b><br>Напишите, какие очки вам нужны, или отправьте рецепт. Менеджер поможет подобрать оправу и линзы.</div><button class="btn dark" onclick="consult()">💬 Написать менеджеру</button><div class="head"><h2>Доставка</h2></div><div class="notice">Доставка по России. Способ и стоимость доставки согласуются при оформлении заказа.</div>`}
 function consult(){modal(`<h2>Консультация</h2><textarea id="consultComment" class="field" style="height:110px" placeholder="Например: нужны прогрессивные очки, есть рецепт..."></textarea><input id="consultPhone" class="field" placeholder="Телефон"><button id="consultBtn" class="btn dark" onclick="sendConsult()">Отправить запрос менеджеру</button>`)}
 async function sendConsult(){const btn=document.getElementById('consultBtn');btn.disabled=true;btn.textContent='Отправляем…';const tg=(()=>{const u=window.Telegram?.WebApp?.initDataUnsafe?.user;if(u)return u;try{const p=new URLSearchParams(location.hash.replace(/^#/,''));const raw=p.get('tgWebAppData');if(raw){const q=new URLSearchParams(raw);return JSON.parse(q.get('user')||'{}')} }catch(e){}return {}})();const data=new URLSearchParams();data.set('type','consultation');data.set('phone',document.getElementById('consultPhone').value.trim());data.set('comment',document.getElementById('consultComment').value.trim());data.set('telegram_user',telegramUser);try{await fetch(ORDER_WEBHOOK,{method:'POST',body:data,mode:'cors'});closeM();modal(`<h2>Запрос отправлен</h2><div class="notice">Менеджер получил ваш запрос и свяжется с вами.</div><button class="btn dark" onclick="closeM();home()">Вернуться в магазин</button>`)}catch(e){btn.disabled=false;btn.textContent='Отправить запрос менеджеру';toast('Не удалось отправить')}}
-save();home();
+save();home();loadSupabaseProducts();
 </script>
 </body>
 </html>
